@@ -1,0 +1,58 @@
+# Compilacion
+target/
+*.jar
+*.class
+
+# Maven
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+dependency-reduced-pom.xml
+release.properties
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+
+# Azure Functions
+local.settings.json
+bin/
+obj/
+appsettings.json
+.azure/
+.python_packages/
+
+# Azurite
+__azurite_db*__.json
+__blobstorage__/
+__queuestorage__/
+
+# Credenciales y wallet de Oracle
+.env
+.env.*
+!.env.example
+*.p12
+*.jks
+*.sso
+Wallet_*
+wallet/
+tnsnames.ora
+ojdbc.properties
+sqlnet.ora
+
+# Entornos de desarrollo
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+nbproject/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Registros
+*.log
+logs/
