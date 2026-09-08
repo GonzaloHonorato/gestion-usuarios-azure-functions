@@ -1,0 +1,21 @@
+type Query {
+    roles: [Rol!]!
+    rol(id: ID!): Rol
+}
+
+type Mutation {
+    crearRol(entrada: DatosRolEntrada!): Rol!
+    actualizarRol(id: ID!, entrada: DatosRolEntrada!): Rol
+    eliminarRol(id: ID!): Boolean!
+}
+
+type Rol {
+    id: ID!
+    nombre: String!
+    descripcion: String
+}
+
+input DatosRolEntrada {
+    nombre: String!
+    descripcion: String
+}
