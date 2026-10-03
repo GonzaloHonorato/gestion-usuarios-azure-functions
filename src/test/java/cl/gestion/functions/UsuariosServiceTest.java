@@ -183,16 +183,4 @@ class UsuariosServiceTest {
                 .findFirst();
         }
     }
-
-    static class PublicadorFalso implements PublicadorEventos {
-        final List<String> creados = new ArrayList<>();
-
-        @Override public void usuarioCreado(long usuarioId, String email, String nombre) {
-            creados.add(usuarioId + ":" + email);
-        }
-
-        @Override public void recuperacionSolicitada(long usuarioId, String email,
-                                                     String nombre, String token) {
-        }
-    }
 }

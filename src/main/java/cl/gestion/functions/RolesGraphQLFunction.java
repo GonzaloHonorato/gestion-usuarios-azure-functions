@@ -22,8 +22,11 @@ public class RolesGraphQLFunction {
             HttpRequestMessage<Optional<String>> peticion,
             final ExecutionContext contexto) {
 
+        RolesService servicio = new RolesService(
+            new RolRepositorioJdbc(),
+            PublicadorEventGrid.desdeConfiguracion(contexto.getLogger()));
+
         return EjecutorGraphQL.responder(
-            peticion, EsquemaRoles.construir(new RolesService(new RolRepositorioJdbc())),
-            "rolesGraphQL", contexto);
+            peticion, EsquemaRoles.construir(servicio), "rolesGraphQL", contexto);
     }
 }

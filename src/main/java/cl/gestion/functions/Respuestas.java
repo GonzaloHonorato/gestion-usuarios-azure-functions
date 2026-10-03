@@ -20,6 +20,12 @@ public final class Respuestas {
             .build();
     }
 
+    public static HttpResponseMessage aceptado(HttpRequestMessage<Optional<String>> peticion,
+                                               String mensaje) {
+        return json(peticion, HttpStatus.ACCEPTED,
+            Map.of("estado", HttpStatus.ACCEPTED.value(), "mensaje", mensaje));
+    }
+
     public static HttpResponseMessage sinContenido(HttpRequestMessage<Optional<String>> peticion) {
         return peticion.createResponseBuilder(HttpStatus.NO_CONTENT).build();
     }

@@ -48,6 +48,14 @@ public class PublicadorEventGrid implements PublicadorEventos {
             VERSION_DATOS);
     }
 
+    static EventGridEvent eventoRolEliminado(long rolId, String nombre, int usuariosAfectados) {
+        return new EventGridEvent(
+            "roles/" + rolId,
+            TipoEvento.ROL_ELIMINADO,
+            BinaryData.fromObject(new EventoRolEliminado(rolId, nombre, usuariosAfectados)),
+            VERSION_DATOS);
+    }
+
     @Override
     public void usuarioCreado(long usuarioId, String email, String nombre) {
         publicar(eventoUsuarioCreado(usuarioId, email, nombre), TipoEvento.USUARIO_CREADO);
@@ -57,6 +65,11 @@ public class PublicadorEventGrid implements PublicadorEventos {
     public void recuperacionSolicitada(long usuarioId, String email, String nombre, String token) {
         publicar(eventoRecuperacionSolicitada(usuarioId, email, nombre, token),
             TipoEvento.RECUPERACION_SOLICITADA);
+    }
+
+    @Override
+    public void rolEliminado(long rolId, String nombre, int usuariosAfectados) {
+        publicar(eventoRolEliminado(rolId, nombre, usuariosAfectados), TipoEvento.ROL_ELIMINADO);
     }
 
     private void publicar(EventGridEvent evento, String tipo) {

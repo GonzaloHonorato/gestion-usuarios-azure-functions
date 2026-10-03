@@ -25,7 +25,9 @@ public class RolesFunction {
 
         String id = Rutas.identificador(peticion.getUri().getPath(), "roles");
 
-        RolesService servicio = new RolesService(new RolRepositorioJdbc());
+        RolesService servicio = new RolesService(
+            new RolRepositorioJdbc(),
+            PublicadorEventGrid.desdeConfiguracion(contexto.getLogger()));
 
         try {
             return switch (peticion.getHttpMethod()) {
@@ -42,13 +44,14 @@ public class RolesFunction {
                         servicio.obtener(identificador(id)).orElseThrow())
                     : Respuestas.noEncontrado(peticion, "el rol " + id);
                 case DELETE -> servicio.eliminar(identificador(id))
-                    ? Respuestas.sinContenido(peticion)
+                    ? Respuestas.aceptado(peticion,
+                        "Eliminacion del rol " + id + " en proceso, los usuarios quedaran sin el")
                     : Respuestas.noEncontrado(peticion, "el rol " + id);
                 default -> Respuestas.error(peticion, HttpStatus.METHOD_NOT_ALLOWED, "Metodo no soportado");
             };
         } catch (DatosInvalidosException ex) {
             return Respuestas.error(peticion, HttpStatus.BAD_REQUEST, ex.getMessage());
-        } catch (NombreRolDuplicadoException | RolEnUsoException ex) {
+        } catch (NombreRolDuplicadoException ex) {
             return Respuestas.error(peticion, HttpStatus.CONFLICT, ex.getMessage());
         } catch (RuntimeException ex) {
             contexto.getLogger().severe("roles: " + ex.getMessage());

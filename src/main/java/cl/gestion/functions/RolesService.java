@@ -6,9 +6,11 @@ import java.util.Optional;
 public class RolesService {
 
     private final RolRepositorio repositorio;
+    private final PublicadorEventos publicador;
 
-    public RolesService(RolRepositorio repositorio) {
+    public RolesService(RolRepositorio repositorio, PublicadorEventos publicador) {
         this.repositorio = repositorio;
+        this.publicador = publicador;
     }
 
     public List<Rol> listar() {
@@ -32,11 +34,12 @@ public class RolesService {
     }
 
     public boolean eliminar(long id) {
-        int usuarios = repositorio.usuariosCon(id);
-        if (usuarios > 0) {
-            throw new RolEnUsoException(usuarios);
+        Optional<Rol> rol = repositorio.porId(id);
+        if (rol.isEmpty()) {
+            return false;
         }
-        return repositorio.eliminar(id);
+        publicador.rolEliminado(id, rol.get().nombre(), repositorio.usuariosCon(id));
+        return true;
     }
 
     private static String normalizar(String nombre) {

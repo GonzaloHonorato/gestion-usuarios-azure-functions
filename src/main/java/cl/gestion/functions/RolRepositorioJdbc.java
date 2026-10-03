@@ -41,6 +41,20 @@ public class RolRepositorioJdbc implements RolRepositorio {
     }
 
     @Override
+    public Optional<Rol> porNombre(String nombre) {
+        try (Connection conexion = Conexion.abrir();
+             PreparedStatement sentencia = conexion.prepareStatement(
+                 "SELECT ID, NOMBRE, DESCRIPCION FROM ROLES WHERE UPPER(NOMBRE) = UPPER(?)")) {
+            sentencia.setString(1, nombre);
+            try (ResultSet filas = sentencia.executeQuery()) {
+                return filas.next() ? Optional.of(mapear(filas)) : Optional.empty();
+            }
+        } catch (SQLException ex) {
+            throw new AccesoDatosException("obtener el rol " + nombre, ex);
+        }
+    }
+
+    @Override
     public boolean existeNombre(String nombre) {
         try (Connection conexion = Conexion.abrir();
              PreparedStatement sentencia = conexion.prepareStatement(

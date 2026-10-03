@@ -15,14 +15,16 @@ class EsquemaGraphQLTest {
     private GraphQL usuarios;
     private GraphQL roles;
     private UsuariosServiceTest.UsuarioRepositorioMemoria repoUsuarios;
-    private RolesServiceTest.RolRepositorioMemoria repoRoles;
+    private RolRepositorioMemoria repoRoles;
+    private PublicadorFalso publicador;
 
     @BeforeEach
     void preparar() {
         repoUsuarios = new UsuariosServiceTest.UsuarioRepositorioMemoria();
-        repoRoles = new RolesServiceTest.RolRepositorioMemoria();
-        usuarios = EsquemaUsuarios.construir(new UsuariosService(repoUsuarios, new PublicadorNulo()));
-        roles = EsquemaRoles.construir(new RolesService(repoRoles));
+        repoRoles = new RolRepositorioMemoria();
+        publicador = new PublicadorFalso();
+        usuarios = EsquemaUsuarios.construir(new UsuariosService(repoUsuarios, publicador));
+        roles = EsquemaRoles.construir(new RolesService(repoRoles, publicador));
     }
 
     @SuppressWarnings("unchecked")
@@ -155,16 +157,18 @@ class EsquemaGraphQLTest {
     }
 
     @Test
-    void impideEliminarUnRolEnUsoDesdeGraphQL() {
+    void eliminarUnRolEnUsoDesdeGraphQLPublicaElEvento() {
         Map<String, Object> creado = mapa(ejecutar(roles, """
             mutation { crearRol(entrada: { nombre: "enuso" }) { id } }
             """).get("crearRol"));
-        repoRoles.asignados.put(Long.valueOf(String.valueOf(creado.get("id"))), 2);
+        String id = String.valueOf(creado.get("id"));
+        repoRoles.asignados.put(Long.valueOf(id), 2);
 
         ExecutionResult resultado = roles.execute(
-            "mutation { eliminarRol(id: %s) }".formatted(creado.get("id")));
+            "mutation { eliminarRol(id: %s) }".formatted(id));
 
-        assertThat(resultado.getErrors()).isNotEmpty();
+        assertThat(resultado.getErrors()).isEmpty();
+        assertThat(publicador.rolesEliminados).containsExactly(id + ":ENUSO:2");
     }
 
     @Test
@@ -172,11 +176,5 @@ class EsquemaGraphQLTest {
         ExecutionResult resultado = usuarios.execute("{ usuarios { campoInventado } }");
 
         assertThat(resultado.getErrors()).isNotEmpty();
-    }
-
-    static class PublicadorNulo implements PublicadorEventos {
-        @Override public void usuarioCreado(long usuarioId, String email, String nombre) { }
-        @Override public void recuperacionSolicitada(long usuarioId, String email,
-                                                     String nombre, String token) { }
     }
 }

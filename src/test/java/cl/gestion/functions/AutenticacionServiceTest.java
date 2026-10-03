@@ -155,16 +155,4 @@ class AutenticacionServiceTest {
             });
         }
     }
-
-    static class PublicadorFalso implements PublicadorEventos {
-        final List<String> recuperaciones = new ArrayList<>();
-
-        @Override public void usuarioCreado(long usuarioId, String email, String nombre) {
-        }
-
-        @Override public void recuperacionSolicitada(long usuarioId, String email,
-                                                     String nombre, String token) {
-            recuperaciones.add(email);
-        }
-    }
 }

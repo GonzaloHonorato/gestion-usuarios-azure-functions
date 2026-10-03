@@ -9,6 +9,8 @@ public interface RolRepositorio {
 
     Optional<Rol> porId(long id);
 
+    Optional<Rol> porNombre(String nombre);
+
     boolean existeNombre(String nombre);
 
     Rol crear(String nombre, String descripcion);

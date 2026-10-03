@@ -29,6 +29,16 @@ class PublicadorEventGridTest {
     }
 
     @Test
+    void componeElEventoDeRolEliminado() {
+        EventGridEvent evento = PublicadorEventGrid.eventoRolEliminado(5L, "SUPERVISOR", 3);
+
+        assertThat(evento.getEventType()).isEqualTo(TipoEvento.ROL_ELIMINADO);
+        assertThat(evento.getSubject()).isEqualTo("roles/5");
+        assertThat(evento.getDataVersion()).isEqualTo("1.0");
+        assertThat(evento.getData().toString()).contains("SUPERVISOR").contains("3");
+    }
+
+    @Test
     void elAsuntoIdentificaAlUsuarioAfectado() {
         assertThat(PublicadorEventGrid.eventoUsuarioCreado(1L, "a@b.cl", "A").getSubject())
             .isEqualTo("usuarios/1");
