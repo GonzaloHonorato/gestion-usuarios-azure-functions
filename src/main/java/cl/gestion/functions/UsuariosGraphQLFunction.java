@@ -24,7 +24,7 @@ public class UsuariosGraphQLFunction {
 
         UsuariosService servicio = new UsuariosService(
             new UsuarioRepositorioJdbc(),
-            new NotificadorHttp(Configuracion.valor("NOTIFICACIONES_URL", ""), contexto.getLogger()));
+            PublicadorEventGrid.desdeConfiguracion(contexto.getLogger()));
 
         return EjecutorGraphQL.responder(
             peticion, EsquemaUsuarios.construir(servicio), "usuariosGraphQL", contexto);

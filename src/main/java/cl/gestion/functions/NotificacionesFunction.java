@@ -1,58 +1,54 @@
 package cl.gestion.functions;
 
 import com.microsoft.azure.functions.ExecutionContext;
-import com.microsoft.azure.functions.HttpMethod;
-import com.microsoft.azure.functions.HttpRequestMessage;
-import com.microsoft.azure.functions.HttpResponseMessage;
-import com.microsoft.azure.functions.HttpStatus;
-import com.microsoft.azure.functions.annotation.AuthorizationLevel;
+import com.microsoft.azure.functions.annotation.EventGridTrigger;
 import com.microsoft.azure.functions.annotation.FunctionName;
-import com.microsoft.azure.functions.annotation.HttpTrigger;
-
-import java.util.Map;
-import java.util.Optional;
 
 public class NotificacionesFunction {
 
     @FunctionName("notificaciones")
-    public HttpResponseMessage run(
-            @HttpTrigger(
-                name = "req",
-                methods = {HttpMethod.POST},
-                authLevel = AuthorizationLevel.FUNCTION,
-                route = "notificaciones")
-            HttpRequestMessage<Optional<String>> peticion,
+    public void run(
+            @EventGridTrigger(name = "eventGridEvent") String contenido,
             final ExecutionContext contexto) {
 
         try {
-            PeticionNotificacion datos = Json.leer(peticion.getBody().orElse(null),
-                PeticionNotificacion.class);
-
-            if (datos.destinatario() == null || datos.destinatario().isBlank()) {
-                throw new DatosInvalidosException("Falta el destinatario");
+            EventoRecibido evento = LectorEvento.leer(contenido);
+            String destinatario = LectorEvento.texto(evento.data(), "email");
+            String nombre = LectorEvento.texto(evento.data(), "nombre");
+            if (nombre.isBlank()) {
+                nombre = "usuario";
             }
 
-            String nombre = (datos.nombre() == null || datos.nombre().isBlank())
-                ? "usuario" : datos.nombre();
+            if (destinatario.isBlank()) {
+                contexto.getLogger().warning(
+                    "notificaciones: evento " + evento.eventType() + " sin destinatario");
+                return;
+            }
 
-            Correo correo = switch (datos.tipo() == null ? "" : datos.tipo().toUpperCase()) {
-                case "BIENVENIDA" -> MensajesCorreo.bienvenida(nombre);
-                case "RECUPERACION" -> MensajesCorreo.recuperacion(nombre, datos.token(),
+            Correo correo = switch (evento.eventType()) {
+                case TipoEvento.USUARIO_CREADO -> MensajesCorreo.bienvenida(nombre);
+                case TipoEvento.RECUPERACION_SOLICITADA -> MensajesCorreo.recuperacion(
+                    nombre,
+                    LectorEvento.texto(evento.data(), "token"),
                     Configuracion.entero("TOKEN_VIGENCIA_MINUTOS", 30));
-                default -> throw new DatosInvalidosException("Tipo de notificacion no reconocido");
+                default -> null;
             };
 
-            SmtpMailer.desdeConfiguracion()
-                .enviar(datos.destinatario(), correo.asunto(), correo.cuerpo());
+            if (correo == null) {
+                contexto.getLogger().info(
+                    "notificaciones: evento ignorado, tipo " + evento.eventType());
+                return;
+            }
 
-            contexto.getLogger().info("notificaciones: " + datos.tipo() + " enviada a " + datos.destinatario());
-            return Respuestas.json(peticion, HttpStatus.OK, Map.of("enviado", true));
+            SmtpMailer.desdeConfiguracion().enviar(destinatario, correo.asunto(), correo.cuerpo());
+            contexto.getLogger().info("notificaciones: " + evento.eventType()
+                + " enviada a " + destinatario + " · evento " + evento.id());
 
         } catch (DatosInvalidosException ex) {
-            return Respuestas.error(peticion, HttpStatus.BAD_REQUEST, ex.getMessage());
+            contexto.getLogger().severe("notificaciones: " + ex.getMessage());
         } catch (RuntimeException ex) {
             contexto.getLogger().severe("notificaciones: " + ex.getMessage());
-            return Respuestas.error(peticion, HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo enviar la notificacion");
+            throw ex;
         }
     }
 }

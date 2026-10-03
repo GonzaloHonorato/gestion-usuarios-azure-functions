@@ -29,7 +29,7 @@ public class AutenticacionFunction {
         int vigencia = Configuracion.entero("TOKEN_VIGENCIA_MINUTOS", 30);
         AutenticacionService servicio = new AutenticacionService(
             new CuentaRepositorioJdbc(),
-            new NotificadorHttp(Configuracion.valor("NOTIFICACIONES_URL", ""), contexto.getLogger()),
+            PublicadorEventGrid.desdeConfiguracion(contexto.getLogger()),
             vigencia);
 
         String cuerpo = peticion.getBody().orElse(null);

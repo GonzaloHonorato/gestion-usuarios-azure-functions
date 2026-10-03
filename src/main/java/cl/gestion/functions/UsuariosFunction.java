@@ -27,7 +27,7 @@ public class UsuariosFunction {
 
         UsuariosService servicio = new UsuariosService(
             new UsuarioRepositorioJdbc(),
-            new NotificadorHttp(Configuracion.valor("NOTIFICACIONES_URL", ""), contexto.getLogger()));
+            PublicadorEventGrid.desdeConfiguracion(contexto.getLogger()));
 
         try {
             return switch (peticion.getHttpMethod()) {

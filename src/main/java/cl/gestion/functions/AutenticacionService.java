@@ -13,13 +13,13 @@ public class AutenticacionService {
     private static final SecureRandom ALEATORIO = new SecureRandom();
 
     private final CuentaRepositorio repositorio;
-    private final Notificador notificador;
+    private final PublicadorEventos publicador;
     private final int vigenciaMinutos;
 
-    public AutenticacionService(CuentaRepositorio repositorio, Notificador notificador,
+    public AutenticacionService(CuentaRepositorio repositorio, PublicadorEventos publicador,
                                 int vigenciaMinutos) {
         this.repositorio = repositorio;
-        this.notificador = notificador;
+        this.publicador = publicador;
         this.vigenciaMinutos = vigenciaMinutos;
     }
 
@@ -42,7 +42,8 @@ public class AutenticacionService {
         String token = generarToken();
         repositorio.guardarToken(new TokenRecuperacion(
             token, cuenta.get().id(), Instant.now().plus(vigenciaMinutos, ChronoUnit.MINUTES), false));
-        notificador.recuperacion(cuenta.get().email(), cuenta.get().nombre(), token);
+        publicador.recuperacionSolicitada(
+            cuenta.get().id(), cuenta.get().email(), cuenta.get().nombre(), token);
     }
 
     public void restablecer(String token, String passwordNueva) {

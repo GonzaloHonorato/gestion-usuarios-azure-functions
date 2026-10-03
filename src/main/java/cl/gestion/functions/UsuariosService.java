@@ -10,11 +10,11 @@ public class UsuariosService {
     private static final int LARGO_MINIMO_PASSWORD = 8;
 
     private final UsuarioRepositorio repositorio;
-    private final Notificador notificador;
+    private final PublicadorEventos publicador;
 
-    public UsuariosService(UsuarioRepositorio repositorio, Notificador notificador) {
+    public UsuariosService(UsuarioRepositorio repositorio, PublicadorEventos publicador) {
         this.repositorio = repositorio;
-        this.notificador = notificador;
+        this.publicador = publicador;
     }
 
     public List<Usuario> listar() {
@@ -36,7 +36,7 @@ public class UsuariosService {
         }
 
         Usuario creado = repositorio.crear(datos, Passwords.cifrar(datos.password()));
-        notificador.bienvenida(creado.email(), creado.nombre());
+        publicador.usuarioCreado(creado.id(), creado.email(), creado.nombre());
         return creado;
     }
 

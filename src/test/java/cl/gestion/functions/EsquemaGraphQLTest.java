@@ -21,7 +21,7 @@ class EsquemaGraphQLTest {
     void preparar() {
         repoUsuarios = new UsuariosServiceTest.UsuarioRepositorioMemoria();
         repoRoles = new RolesServiceTest.RolRepositorioMemoria();
-        usuarios = EsquemaUsuarios.construir(new UsuariosService(repoUsuarios, new NotificadorNulo()));
+        usuarios = EsquemaUsuarios.construir(new UsuariosService(repoUsuarios, new PublicadorNulo()));
         roles = EsquemaRoles.construir(new RolesService(repoRoles));
     }
 
@@ -174,8 +174,9 @@ class EsquemaGraphQLTest {
         assertThat(resultado.getErrors()).isNotEmpty();
     }
 
-    static class NotificadorNulo implements Notificador {
-        @Override public void bienvenida(String email, String nombre) { }
-        @Override public void recuperacion(String email, String nombre, String token) { }
+    static class PublicadorNulo implements PublicadorEventos {
+        @Override public void usuarioCreado(long usuarioId, String email, String nombre) { }
+        @Override public void recuperacionSolicitada(long usuarioId, String email,
+                                                     String nombre, String token) { }
     }
 }

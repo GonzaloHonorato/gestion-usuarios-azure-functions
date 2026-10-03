@@ -16,14 +16,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class AutenticacionServiceTest {
 
     private CuentaRepositorioMemoria repositorio;
-    private NotificadorFalso notificador;
+    private PublicadorFalso publicador;
     private AutenticacionService servicio;
 
     @BeforeEach
     void preparar() {
         repositorio = new CuentaRepositorioMemoria();
-        notificador = new NotificadorFalso();
-        servicio = new AutenticacionService(repositorio, notificador, 30);
+        publicador = new PublicadorFalso();
+        servicio = new AutenticacionService(repositorio, publicador, 30);
         repositorio.registrar(1L, "ana@correo.cl", "Ana", "clave-segura-123", true, List.of("ADMIN"));
         repositorio.registrar(2L, "inactivo@correo.cl", "Juan", "clave-segura-123", false, List.of("USUARIO"));
     }
@@ -60,7 +60,7 @@ class AutenticacionServiceTest {
         servicio.solicitarRecuperacion("ana@correo.cl");
 
         assertThat(repositorio.tokens).hasSize(1);
-        assertThat(notificador.recuperaciones).containsExactly("ana@correo.cl");
+        assertThat(publicador.recuperaciones).containsExactly("ana@correo.cl");
     }
 
     @Test
@@ -68,7 +68,7 @@ class AutenticacionServiceTest {
         servicio.solicitarRecuperacion("nadie@correo.cl");
 
         assertThat(repositorio.tokens).isEmpty();
-        assertThat(notificador.recuperaciones).isEmpty();
+        assertThat(publicador.recuperaciones).isEmpty();
     }
 
     @Test
@@ -156,13 +156,14 @@ class AutenticacionServiceTest {
         }
     }
 
-    static class NotificadorFalso implements Notificador {
+    static class PublicadorFalso implements PublicadorEventos {
         final List<String> recuperaciones = new ArrayList<>();
 
-        @Override public void bienvenida(String email, String nombre) {
+        @Override public void usuarioCreado(long usuarioId, String email, String nombre) {
         }
 
-        @Override public void recuperacion(String email, String nombre, String token) {
+        @Override public void recuperacionSolicitada(long usuarioId, String email,
+                                                     String nombre, String token) {
             recuperaciones.add(email);
         }
     }
